@@ -1,0 +1,45 @@
+name: Trading Bot Safety Guard
+description: Audit trading-bot repositories for exposed secrets, live endpoints, and unsafe risk configuration.
+author: Luciano Leal
+
+inputs:
+  path:
+    description: Repository directory to scan.
+    required: false
+    default: .
+  fail-on-secrets:
+    description: Fail when credential-like values or private keys are detected.
+    required: false
+    default: "true"
+  require-demo:
+    description: Fail when live exchange endpoints are found without an explicit demo or testnet safeguard.
+    required: false
+    default: "true"
+  max-leverage:
+    description: Highest permitted configured leverage.
+    required: false
+    default: "5"
+
+outputs:
+  findings:
+    description: Total number of findings.
+    value: ${{ steps.audit.outputs.findings }}
+  report:
+    description: Path to the generated Markdown report.
+    value: ${{ steps.audit.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - id: audit
+      shell: bash
+      env:
+        INPUT_SCAN_PATH: ${{ inputs.path }}
+        INPUT_FAIL_ON_SECRETS: ${{ inputs.fail-on-secrets }}
+        INPUT_REQUIRE_DEMO: ${{ inputs.require-demo }}
+        INPUT_MAX_LEVERAGE: ${{ inputs.max-leverage }}
+      run: python3 "${{ github.action_path }}/src/audit.py"
+
+branding:
+  icon: shield
+  color: green
